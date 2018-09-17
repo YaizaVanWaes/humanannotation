@@ -1,0 +1,20 @@
+# R script to extract human gene annotation
+# Author: Yaiza Van Waes
+# Version: 0.1
+
+library(biomaRt)
+View(biomart)
+listEnsembl()
+listMarts()
+ensMart<-useMart("ensembl")
+listDatasets(ensMart)
+ensembl_hs_mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+ensembl_mm_mart <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+listAttributes(ensembl_hs_mart)
+listAttributes(ensembl_mm_mart)
+ensembl_hs_mart <- getBM(attributes=c("chromosome_name", "start_position", "end_position", "ensembl_gene_id", "strand", "hgnc_symbol", "gene_biotype", "wikigene_description", "mmusculus_homolog_ensembl_gene"),
+                    mart=ensembl_hs_mart)
+
+
+write.table(ensembl_df, file = "human.annotation.grch37.xls", sep = "\t", quote = F,row.names = TRUE, col.names = T)
+listAttributes(ensembl_hs_mart)
