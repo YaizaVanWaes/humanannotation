@@ -1,0 +1,34 @@
+# R script to extract human gene annotation
+# Author: Yaiza Van Waes
+# Version: 0.1
+
+library(biomaRt)
+View(biomart)
+listEnsembl()
+listMarts()
+ensMart<-useMart("ensembl")
+listDatasets(ensMart)
+ensembl_hs_mart <- useMart(biomart="ensembl",dataset="hsapiens_gene_ensembl")
+listAttributes(ensembl_hs_mart)[1:2000]
+#ensembl_mm_mart <- useMart("ensembl", dataset = "mmusculus_gene_ensembl")
+#listAttributes(ensembl_hs_mart, page = "homologs")
+#listAttributes(ensembl_mm_mart)
+ensembl_df1 <- getBM(attributes=c("chromosome_name", "start_position", "end_position", "ensembl_gene_id", "strand", "hgnc_symbol", "gene_biotype", "wikigene_description"),
+                    mart=ensembl_hs_mart)
+head(ensembl_df1)
+
+write.table(ensembl_df1, file = "human.annotation.grch37.xls", sep = "\t", quote = F,row.names = TRUE, col.names = T)
+
+# write mouse ortholog
+ensembl_df2 <- getBM(attributes=c("ensembl_gene_id", "mmusculus_homolog_ensembl_gene", "rnorvegicus_homolog_ensembl_gene"),
+                         mart=ensembl_hs_mart)
+head(ensembl_df2)
+#listAttributes(ensembl_hs_mart)[grep("Mouse",listAttributes(ensembl_hs_mart)$description),]
+
+listAttributes(ensembl_hs_mart)[grep("Exon",listAttributes(ensembl_hs_mart)$description),]
+merge()
+
+Intronlength.df1 <- getBM(attributes=c("ensembl_gene_id", "exon_chrom_start", "exon_chrom_end"),mart=ensembl_hs_mart)
+write.table(Intronlength.df1, file = "human.intron.length.txt", sep = "\t", quote = F,row.names = TRUE, col.names = T)
+
+Intronlength.df1$size=Intronlength.df1$exon_chrom_end - Intronlength.df1$exon_chrom_start
