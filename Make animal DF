@@ -1,0 +1,28 @@
+# R script to establish Ensembl gene DF
+# Author: Yaiza Van Waes
+# Version: 0.1
+
+library(biomaRt)
+
+listEnsembl()
+listMarts()
+ensMart<-useMart("ensembl")
+listDatasets(ensMart)
+ensembl_hs_mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+listAttributes(ensembl_hs_mart)[grep("Last",listAttributes(ensembl_hs_mart)$homologs),]
+listAttributes(ensembl_hs_mart)
+
+#
+Human_ref <- getBM(attributes=c("ensembl_gene_id", "external_gene_name"),
+                         mart=ensembl_hs_mart)
+#Create each animal's DF
+
+Animal_homolog <- getBM(attributes=c("ensembl_gene_id", "mmulatta_homolog_ensembl_gene"),
+                   mart=ensembl_hs_mart)
+
+Homolog_DF <- merge(Homolog_DF,Animal_homolog,by="ensembl_gene_id")
+
+
+#Remove column
+
+Homolog_DF$pabelii_homolog_ensembl_gene.y <- NULL
