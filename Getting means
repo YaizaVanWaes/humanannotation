@@ -1,0 +1,21 @@
+#Getting means of intron length
+
+setwd("/Users/yaizavanwaes/projects/intronAnalysis/data/")
+SpeciesIntronLengths <- read.table("67species.intron_lengths.tab",comment.char = "", quote = "\"", sep = "\t", header = T)
+for (i in 2:68) {print(mean(SpeciesIntronLengths[,i], na.rm = T))}
+
+#Get mean for each column using for loop
+IntronLengthMeans <- data.frame()
+IntronLengthMeans<- for (i in 2:68) {(mean(SpeciesIntronLengths[,i], na.rm = T))}
+print(IntronLengthMeans)
+
+#OR turn into a matrix
+row.names(SpeciesIntronLengths) <- SpeciesIntronLengths[,1]
+SpeciesIntronLengths <- (SpeciesIntronLengths[,-1])
+is.matrix(SpeciesIntronLengths)
+
+#Then get the mean
+apply(SpeciesIntronLengths, 2, mean)
+
+SpeciesData <- SpeciesData %>% 
+  rename(IntronLength = IntronLengh)
