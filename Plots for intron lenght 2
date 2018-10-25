@@ -1,0 +1,75 @@
+#Getting means of intron length
+
+setwd("/Users/yaizavanwaes/projects/intronAnalysis/data/")
+SpeciesIntronLengths <- read.table("67species.intron_lengths.tab",comment.char = "", quote = "\"", sep = "\t", header = T)
+for (i in 2:68) {print(mean(SpeciesIntronLengths[,i], na.rm = T))}
+
+#Get mean for each column using for loop
+IntronLengthMeans <- data.frame()
+IntronLengthMeans<- for (i in 2:68) {(mean(SpeciesIntronLengths[,i], na.rm = T))}
+print(IntronLengthMeans)
+
+#OR turn into a matrix
+row.names(SpeciesIntronLengths) <- SpeciesIntronLengths[,1]
+SpeciesIntronLengths <- (SpeciesIntronLengths[,-1])
+is.matrix(SpeciesIntronLengths)
+
+#Then get the mean
+apply(SpeciesIntronLengths, 2, mean)
+
+SpeciesData <- SpeciesData %>% 
+  rename(IntronLength = apply.SpeciesIntronLengths..2..mean..na.rm...T.)
+SpeciesData <- data.frame (apply(SpeciesIntronLengths, 2, mean, na.rm = T))
+
+#Get other columns
+library(readxl)
+Species_names <- read_excel("species_data.csv")
+Species_names <- read_csv("species_data.csv")
+View(species_list)
+IntronLengthEQ <- IntronLengthEQ[order(IntronLengthEQ$DivTime2Human),]
+
+#Make DF with Intron length and other data
+write.table(IntronLengthEQ, file = "IntronLengthEQ.csv")
+IntronLengthEQ <- merge(species_list,species_data,by="Common_name")
+IntronLengthEQ <- IntronLengthEQ[order(IntronLengthEQ$DivTime2Human),]
+
+#Make plot EQ vs. IntronLength
+library(tidyverse)
+with(subset(IntronLengthEQ,!is.na(EQ)), plot(IntronLength, EQ, xlim=range(IntronLength)*1.1, col='red'))
+with(subset(IntronLengthEQ,!is.na(EQ)), text(IntronLength, EQ, labels = Common_name, adj=1,pos=4,cex=0.5,col='darkgray'))
+#with(subset(species_table,!is.na(EQ)), lines(lowess(DivTime2Human,EQ,f=.5), lty = 2, lwd=2,col = 'red'))
+with(subset(IntronLengthEQ,!is.na(EQ)), lines(seq(0,max(IntronLength),.5),exp(predict(lm(log(EQ)~IntronLength),list(IntronLength=seq(0,max(IntronLength),.5)))), lty = 2, lwd=2,col = 'red'))
+with(subset(IntronLengthEQ,!is.na(EQ)), legend("bottomleft", legend=substitute(paste(italic(R)^2 == y,", ", italic(p) == z), list(y=format(cor(IntronLength,EQ, method = "spearman")^2,digits=2),z=format(cor.test(IntronLength,EQ, method = "spearman")$p.value,digits=2))),bty='n'))
+
+#Make plot LogEQ vs Intron Length
+with(subset(IntronLengthEQ,!is.na(EQ)), plot(IntronLength, log10(EQ), xlim=range(IntronLength)*1.1, col='red', yaxt='n'))
+with(subset(IntronLengthEQ,!is.na(EQ)), text(IntronLength, log10(EQ), labels = Common_name, adj=1,pos=4,cex=0.5,col='darkgray'))
+with(subset(IntronLengthEQ,!is.na(EQ)), lines(lowess(IntronLength,log10(EQ),f=1), lty = 2, lwd=2,col = 'red'))
+with(subset(IntronLengthEQ,!is.na(EQ)), legend("bottomleft", legend=substitute(paste(italic(R)^2 == y,", ", italic(p) == z), list(y=format(cor(IntronLength,log10(EQ), method = "spearman")^2,digits=2),z=format(cor.test(IntronLength,log10(EQ), method = "spearman")$p.value,digits=2))),bty='n'))
+
+#Make plot LogEQ vs LogIntron Length
+with(subset(IntronLengthEQ,!is.na(EQ)), plot(log10(IntronLength), log10(EQ), xlim=range(log10(IntronLength)*1.005), col='red', yaxt='n'))
+with(subset(IntronLengthEQ,!is.na(EQ)), text(log10(IntronLength), log10(EQ), labels = Common_name, adj=1,pos=4,cex=0.5,col='darkgray'))
+with(subset(IntronLengthEQ,!is.na(EQ)), lines(lowess(log10(IntronLength),log10(EQ),f=1), lty = 2, lwd=2,col = 'red'))
+with(subset(IntronLengthEQ,!is.na(EQ)), legend("bottomleft", legend=substitute(paste(italic(R)^2 == y,", ", italic(p) == z), list(y=format(cor(log10(IntronLength),log10(EQ), method = "spearman")^2,digits=2),z=format(cor.test(log10(IntronLength),log10(EQ), method = "spearman")$p.value,digits=2))),bty='n'))
+
+#Make exponential adjustment
+with(subset(IntronLengthEQ,!is.na(EQ)), plot(IntronLength, EQ, xlim=range(IntronLength)*1.1, col='red'))
+with(subset(IntronLengthEQ,!is.na(EQ)), text(IntronLength, EQ, labels = Common_name, adj=1,pos=4,cex=0.5,col='darkgray'))
+with(subset(species_table,!is.na(EQ)), lines(IntronLength, predict(fit, data.frame(EQ)), col="red"))
+
+EQ <- as.vector(IntronLengthEQ[,6])
+fit <- lm(EQ ~ IntronLength, data = IntronLengthEQ) 
+plot (fit)
+
+
+fit3 <- lm(EQ~poly(IntronLength,3,raw=TRUE))
+xx <- seq(0,80000, length= 66)
+plot(IntronLength,EQ,pch=1,ylim=c(0,6))
+lines(xx, predict(fit3, data.frame(EQ=xx)),col = "red")
+
+line()ExpModel <- lm(IntronLength ~ EQ, data = IntronLengthEQ)
+bvalues <- seq(1,8000,length=60)   
+exponential <- predict(ExpModel,list(B=bvalues))
+plot(IntronLength ~ EQ, IntronLengthEQ)
+lines(bvalues, exponential, lwd = 2, col="red")
